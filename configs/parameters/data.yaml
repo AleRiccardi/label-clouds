@@ -6,8 +6,8 @@ path_images_right_2: configs/data/images_right_2/
 path_poses_1: configs/data/poses_1.txt
 path_poses_2: configs/data/poses_2.txt
 
-path_selections_1: configs/data/fruits_selections_1.json
-path_selections_2: configs/data/fruits_selections_2.json
+path_selections_1: configs/data/selections_1.json
+path_selections_2: configs/data/selections_2.json
 
 path_cloud_1: configs/data/cloud_1.ply
 path_cloud_2: configs/data/cloud_2.ply
