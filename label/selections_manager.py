@@ -16,7 +16,7 @@ from label.utils.user import user_input, user_question
 
 
 class SelectionsManager:
-    SIZE_DS = 0.006
+    SIZE_DS = 0.01
     CROP_AREA = 0.35
     CROP_HEIGHT = 0.3
 
@@ -46,8 +46,7 @@ class SelectionsManager:
         # Initializing clouds
         self.cloud = load_cloud(path_cloud, self.T)
         self.cloud = area_gt.cropCloud(self.cloud)
-        self.cloud_ds = self.cloud
-        #  self.cloud_ds = self.cloud.voxel_down_sample(self.SIZE_DS)
+        self.cloud_ds = self.cloud.voxel_down_sample(self.SIZE_DS)
         self.cloud_ds_tree = o3d.geometry.KDTreeFlann(self.cloud_ds)
         self.cloud_ds_color = o3d.geometry.PointCloud()
         self.cloud_crop = o3d.geometry.PointCloud()
@@ -58,7 +57,7 @@ class SelectionsManager:
         self.ask_selection = True
 
     def initMessage(self, name):
-        print_title("Fruit selection: {}".format(name))
+        print_title("Fruit selection: {}".format(name), "-")
 
     def saveSelections(self):
         file = open(self.path_selections, "w")

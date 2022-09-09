@@ -12,9 +12,9 @@ class ImageView:
     HOST = "127.0.0.1"
     PORT = 9999
 
-    def __init__(self, loader: Loader) -> None:
-        self.images1 = loader.images1
-        self.images2 = loader.images2
+    def __init__(self, images1, images2) -> None:
+        self.images1 = images1
+        self.images2 = images2
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.HOST, self.PORT))

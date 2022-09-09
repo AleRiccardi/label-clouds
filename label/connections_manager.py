@@ -1,5 +1,5 @@
-import json
 import os
+import json
 import socket
 import random
 import numpy as np
@@ -25,9 +25,10 @@ class ConnectionsManager:
     PORT = 9999
 
     def __init__(self, params) -> None:
-        self.initMessage()
         self.params = params
         self.view_pose = np.eye(4)
+        self.clear = lambda: os.system("clear")
+        self.initMessage()
 
         self.path_connections = params.path_connections
         path, _ = os.path.split(self.path_connections)
@@ -67,6 +68,7 @@ class ConnectionsManager:
         #  self.socket.connect((self.HOST, self.PORT))
 
     def initMessage(self):
+        self.clear()
         print_title("Fruit connections")
 
     def saveConnections(self):
@@ -95,13 +97,15 @@ class ConnectionsManager:
         if not self.ask_selection:
             return True
 
+        self.clear()
+        print_title("Fruit connections")
         print(
             "\nFruit connection:",
             " -> Continue",
-            " 1) Select view point",
+            " 1) Select a harvested fruit",
             " 2) Remove a connection",
-            " 3) Remove a fruit",
-            " 4) Enter fruit selection",
+            " 3) Select a view point",
+            " 4) Enter the fruit selection",
             " 5) Exit",
             sep=os.linesep,
         )
@@ -109,13 +113,13 @@ class ConnectionsManager:
 
         if action == None:
             if (self.view_pose == np.eye(4)).all():
-                self.selectViewPointRandom()
+                self.selectViewPoint()
         elif action == 1:
-            self.selectViewPoint()
+            self.selectHarvestedFruit()
         elif action == 2:
             self.removeConnection()
         elif action == 3:
-            self.removeFruit()
+            self.selectViewPoint()
         elif action == 4:
             self.fruitSelection()
             self.selectViewPoint()
@@ -231,14 +235,14 @@ class ConnectionsManager:
             self.view_pose = np.linalg.inv(self.TRANSFORM_14) @ self.view_pose
 
     def selectViewPoint(self):
-        print("Select a view point")
+        print("\n -> Select a view point")
         self.updateCloudDS()
 
         while True:
             idxs = pick_points(self.cloud_ds)
             if len(idxs) == 0:
-                self.selectViewPointRandom()
-                return
+                print("Attention: select one point")
+                continue
 
             if len(idxs) == 1:
                 break
@@ -251,7 +255,7 @@ class ConnectionsManager:
         #  self.sendSocketPose()
 
     def selectViewPointRandom(self):
-        print("Selecting random view point")
+        print("Selecting a random view point")
         self.updateCloudDS()
         idxs = [random.randint(0, len(self.cloud_ds.points))]
         self.getCloudViewPoint(idxs[0])
@@ -295,7 +299,7 @@ class ConnectionsManager:
         self.updateCloudCrop()
         self.ask_selection = False
 
-    def removeFruit(self):
+    def selectHarvestedFruit(self):
         # Pick points
         idxs = pick_points(self.cloud_crop)
         if len(idxs) == 0:

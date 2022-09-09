@@ -14,12 +14,12 @@ from scipy.spatial import KDTree
 EPSILON = 0.000003
 
 
-def print_title(msg):
+def print_title(msg, char="="):
     msg = " " + msg + " "
-    lenght = max(50, len(msg))
-    print("\n" + "=" * lenght)
+    lenght = max(60, len(msg))
+    print("\n" + char * lenght)
     print(msg)
-    print("=" * lenght)
+    print(char * lenght)
 
 
 def read_image(path):
