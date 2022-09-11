@@ -21,59 +21,65 @@ def crop_cloud(
 ):
     if display_msg:
         print("Cropping the cloud ...")
-    points = o3d.utility.Vector3dVector(get_points_cuboid(size_area, size_height))
+    poligon = get_points_cuboid(size_area, size_height=size_height)
+    points = o3d.utility.Vector3dVector(poligon)
     bnb = o3d.geometry.OrientedBoundingBox.create_from_points(points)
     return cloud.crop(bnb)
 
 
-def get_points_cuboid(size_area: float = 3, size_height: float = 2):
+def get_points_cuboid(size_x: float = 3, size_y: float = 2, size_height: float = 2):
     center = {"x": 0, "y": 0, "z": 0}
-    return np.array(
+    poligon = np.array(
         [
             # Vertices Polygon1
             [
-                center["x"] + (size_area / 2),
-                center["y"] + (size_area / 2),
+                center["x"] + (size_x / 2),
+                center["y"] + size_y,
                 center["z"] + size_height,
             ],  # face-topright
             [
-                center["x"] - (size_area / 2),
-                center["y"] + (size_area / 2),
+                center["x"] - (size_x / 2),
+                center["y"] + size_y,
                 center["z"] + size_height,
             ],  # face-topleft
             [
-                center["x"] - (size_area / 2),
-                center["y"] - (size_area / 2),
+                center["x"] - (size_x / 2),
+                center["y"] - size_y,
                 center["z"] + size_height,
             ],  # rear-topleft
             [
-                center["x"] + (size_area / 2),
-                center["y"] - (size_area / 2),
+                center["x"] + (size_x / 2),
+                center["y"] - size_y,
                 center["z"] + size_height,
             ],  # rear-topright
             # Vertices Polygon 2
             [
-                center["x"] + (size_area / 2),
-                center["y"] + (size_area / 2),
+                center["x"] + (size_x / 2),
+                center["y"] + size_y,
                 center["z"] - size_height,
             ],
             [
-                center["x"] - (size_area / 2),
-                center["y"] + (size_area / 2),
+                center["x"] - (size_x / 2),
+                center["y"] + size_y,
                 center["z"] - size_height,
             ],
             [
-                center["x"] - (size_area / 2),
-                center["y"] - (size_area / 2),
+                center["x"] - (size_x / 2),
+                center["y"] - size_y,
                 center["z"] - size_height,
             ],
             [
-                center["x"] + (size_area / 2),
-                center["y"] - (size_area / 2),
+                center["x"] + (size_x / 2),
+                center["y"] - size_y,
                 center["z"] - size_height,
             ],
         ]
     ).astype("float64")
+    print(poligon)
+    print(size_x)
+    input()
+
+    return poligon
 
 
 def load_cloud(path_cloud, T=np.eye(4)):

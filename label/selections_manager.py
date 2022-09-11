@@ -114,9 +114,11 @@ class SelectionsManager:
         )
         action = user_input("")
 
-        if action == None:
-            if (self.view_pose == np.eye(4)).all():
-                self.selectViewPoint()
+        if not self.isViewPointSet():
+            self.selectViewPoint()
+
+        if not self.isViewPointSet():
+            pass
         elif action == 1:
             self.removeSelection()
         elif action == 2:
@@ -124,6 +126,11 @@ class SelectionsManager:
         elif action == 3:
             return False
 
+        return True
+
+    def isViewPointSet(self):
+        if (self.view_pose == np.eye(4)).all():
+            return False
         return True
 
     def userSuperSelection(self):
@@ -163,20 +170,23 @@ class SelectionsManager:
         self.updateCloudDS()
 
         while True:
-            idxs = self.pick_view_point(self.cloud_ds_color)
+            idxs = pick_points(self.cloud_ds, "View point selection")
+            if len(idxs) == 0:
+                self.ask_selection = True
+                return
 
-            if len(idxs) != 1:
-                print("Attention: select one point")
-                continue
+            if len(idxs) == 1:
+                break
 
-            position = self.cloud_ds.points[idxs[0]]
-            self.view_pose = np.eye(4)
-            self.view_pose[:-1, -1] = position
+            print("Attention: select only one point")
 
-            self.updateCloudCrop()
-            self.ask_selection = False
-            self.pinhole = None
-            break
+        position = self.cloud_ds.points[idxs[0]]
+        self.view_pose = np.eye(4)
+        self.view_pose[:-1, -1] = position
+
+        self.updateCloudCrop()
+        self.ask_selection = False
+        self.pinhole = None
 
     def updateViewPoint(self, view_pose: np.ndarray):
         self.view_pose = view_pose
@@ -241,7 +251,7 @@ class SelectionsManager:
 
     def removePickSelection(self):
         # Pick points
-        idxs = pick_points(self.cloud_crop)
+        idxs = pick_points(self.cloud_crop, "Remove selection")
         if len(idxs) == 0:
             self.ask_selection = True
             return

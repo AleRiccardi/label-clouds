@@ -6,24 +6,24 @@ path_selections_2: configs/data/14_21/selections_2.json
 path_connections: configs/data/14_21/connections.json
 
 ## All 
-gt: 
-  GT_MIN: [27.5, 0.6]
-  GT_MAX: [33.5, 0.6]
+# gt: 
+  # GT_MIN: [27.5, 0.6]
+  # GT_MAX: [33.5, 0.6]
 
-## Fede 
+## Ale 
 # gt: 
   # GT_MIN: [27.5, 0.6]
   # GT_MAX: [29.5, 0.6]
 
 ## Eli 
 # gt: 
-  # GT_MIN: [27.5, 0.6]
-  # GT_MAX: [29.5, 0.6]
+  # GT_MIN: [29.5, 0.6]
+  # GT_MAX: [31.5, 0.6]
 
-## Ale 
+## Fede 
 # gt: 
-  # GT_MIN: [27.5, 0.6]
-  # GT_MAX: [29.5, 0.6]
+  # GT_MIN: [31.5, 0.6]
+  # GT_MAX: [33.5, 0.6]
 
 transformations:
   gt_1:
