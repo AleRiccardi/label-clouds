@@ -17,10 +17,10 @@ from label.utils.user import user_input
 
 
 class ConnectionsManager:
-    TRANSFORM_14 = np.eye(4)
-    TRANSFORM_14[:-1, -1] = [0, 1.2, 0]
-    TRANSFORM_CLOSE_14 = np.eye(4)
-    TRANSFORM_CLOSE_14[:-1, -1] = [0, 0.4, 0]
+    TRANSFORM_2 = np.eye(4)
+    TRANSFORM_2[:-1, -1] = [0, 1.2, 0]
+    TRANSFORM_CLOSE_2 = np.eye(4)
+    TRANSFORM_CLOSE_2[:-1, -1] = [0, 0.4, 0]
     HOST = "127.0.0.1"
     PORT = 9999
 
@@ -39,27 +39,27 @@ class ConnectionsManager:
         self.connections: Connections = Connections()
         self.loadConnections()
 
-        self.selection08 = SelectionsManager(
+        self.selection1 = SelectionsManager(
             params.path_cloud_1,
-            params.transformations.gt_08,
+            params.transformations.gt_1,
             params.path_selections_1,
-            "08",
+            "1",
             params,
             False,
         )
-        self.selection14 = SelectionsManager(
+        self.selection2 = SelectionsManager(
             params.path_cloud_2,
-            params.transformations.gt_14,
+            params.transformations.gt_2,
             params.path_selections_2,
-            "14",
+            "2",
             params,
             False,
         )
 
-        self.cloud_ds_08 = o3d.geometry.PointCloud()
-        self.cloud_ds_14 = o3d.geometry.PointCloud()
-        self.cloud_crop_08 = o3d.geometry.PointCloud()
-        self.cloud_crop_14 = o3d.geometry.PointCloud()
+        self.cloud_ds_1 = o3d.geometry.PointCloud()
+        self.cloud_ds_2 = o3d.geometry.PointCloud()
+        self.cloud_crop_1 = o3d.geometry.PointCloud()
+        self.cloud_crop_2 = o3d.geometry.PointCloud()
         self.cloud_ds = o3d.geometry.PointCloud()
         self.cloud_crop = o3d.geometry.PointCloud()
 
@@ -97,8 +97,7 @@ class ConnectionsManager:
         if not self.ask_selection:
             return True
 
-        self.clear()
-        print_title("Fruit connections")
+        self.initMessage()
         print(
             "\nFruit connection:",
             " -> Continue",
@@ -156,83 +155,83 @@ class ConnectionsManager:
             print("Attention: select only one point")
             return
 
-        sel08: Selection = Selection()
-        sel14: Selection = Selection()
+        sel1: Selection = Selection()
+        sel2: Selection = Selection()
         for idx in idxs:
 
-            if idx < len(self.cloud_crop_08.points):
-                position = self.cloud_crop_08.points[idx]
-                sel08 = self.selection08.getFromPosition(position)
+            if idx < len(self.cloud_crop_1.points):
+                position = self.cloud_crop_1.points[idx]
+                sel1 = self.selection1.getFromPosition(position)
             else:
-                idx -= len(self.cloud_crop_08.points)
-                position = self.cloud_crop_14.points[idx]
+                idx -= len(self.cloud_crop_1.points)
+                position = self.cloud_crop_2.points[idx]
                 pose = np.eye(4)
                 pose[:-1, -1] = position
-                pose = np.linalg.inv(self.TRANSFORM_CLOSE_14) @ pose
+                pose = np.linalg.inv(self.TRANSFORM_CLOSE_2) @ pose
                 position = pose[:-1, -1].flatten()
-                sel14 = self.selection14.getFromPosition(position)
+                sel2 = self.selection2.getFromPosition(position)
 
-        if not sel08.isEmtpy():
-            self.connections.remove(sel08.id, Connections.MAP_FIRST)
-        elif not sel14.isEmtpy():
-            self.connections.remove(sel14.id, Connections.MAP_SECOND)
+        if not sel1.isEmtpy():
+            self.connections.remove(sel1.id, Connections.MAP_FIRST)
+        elif not sel2.isEmtpy():
+            self.connections.remove(sel2.id, Connections.MAP_SECOND)
 
         self.updateCloudCrop()
         self.ask_selection = True
 
     def fruitSelection(self):
-        print("Chose:", " 1) Map 08", " 2) Map 14", " 3) Go back", sep=os.linesep)
+        print("Chose:", " 1) Map 1", " 2) Map 2", " 3) Go back", sep=os.linesep)
         action = user_input("")
 
         if action == 1:
-            self.selection08.userSuperSelection()
+            self.selection1.userSuperSelection()
         elif action == 2:
-            self.selection14.userSuperSelection()
+            self.selection2.userSuperSelection()
         elif action == 3:
             return
 
     def updateCloudDS(self):
-        ids_color_08 = self.connections.getIdsColor(Connections.MAP_FIRST)
-        ids_color_14 = self.connections.getIdsColor(Connections.MAP_SECOND)
+        ids_color_1 = self.connections.getIdsColor(Connections.MAP_FIRST)
+        ids_color_2 = self.connections.getIdsColor(Connections.MAP_SECOND)
 
-        self.selection08.updateCloudDS(ids_color_08)
-        self.selection14.updateCloudDS(ids_color_14)
+        self.selection1.updateCloudDS(ids_color_1)
+        self.selection2.updateCloudDS(ids_color_2)
 
-        self.cloud_ds_08 = self.selection08.cloud_ds_color
-        self.cloud_ds_14 = deepcopy(self.selection14.cloud_ds_color).transform(
-            self.TRANSFORM_14
+        self.cloud_ds_1 = self.selection1.cloud_ds_color
+        self.cloud_ds_2 = deepcopy(self.selection2.cloud_ds_color).transform(
+            self.TRANSFORM_2
         )
 
-        self.cloud_ds = add_clouds(self.cloud_ds_08, self.cloud_ds_14)
+        self.cloud_ds = add_clouds(self.cloud_ds_1, self.cloud_ds_2)
 
     def updateCloudCrop(self):
-        self.selection08.view_pose = self.view_pose
-        self.selection14.view_pose = self.view_pose
+        self.selection1.view_pose = self.view_pose
+        self.selection2.view_pose = self.view_pose
 
-        ids_color_08 = self.connections.getIdsColor(Connections.MAP_FIRST)
-        ids_color_14 = self.connections.getIdsColor(Connections.MAP_SECOND)
+        ids_color_1 = self.connections.getIdsColor(Connections.MAP_FIRST)
+        ids_color_2 = self.connections.getIdsColor(Connections.MAP_SECOND)
 
-        self.selection08.updateCloudCrop(ids_color_08)
-        self.selection14.updateCloudCrop(ids_color_14)
+        self.selection1.updateCloudCrop(ids_color_1)
+        self.selection2.updateCloudCrop(ids_color_2)
 
-        self.cloud_crop_08 = self.selection08.cloud_crop
-        self.cloud_crop_14 = deepcopy(self.selection14.cloud_crop).transform(
-            self.TRANSFORM_CLOSE_14
+        self.cloud_crop_1 = self.selection1.cloud_crop
+        self.cloud_crop_2 = deepcopy(self.selection2.cloud_crop).transform(
+            self.TRANSFORM_CLOSE_2
         )
 
-        self.cloud_crop = add_clouds(self.cloud_crop_08, self.cloud_crop_14)
+        self.cloud_crop = add_clouds(self.cloud_crop_1, self.cloud_crop_2)
 
     def getCloudViewPoint(self, idx):
-        if idx < len(self.cloud_ds_08.points):
-            position = self.cloud_ds_08.points[idx]
+        if idx < len(self.cloud_ds_1.points):
+            position = self.cloud_ds_1.points[idx]
             self.view_pose = np.eye(4)
             self.view_pose[:-1, -1] = position
         else:
-            idx -= len(self.cloud_ds_08.points)
-            position = self.cloud_ds_14.points[idx]
+            idx -= len(self.cloud_ds_1.points)
+            position = self.cloud_ds_2.points[idx]
             self.view_pose = np.eye(4)
             self.view_pose[:-1, -1] = position
-            self.view_pose = np.linalg.inv(self.TRANSFORM_14) @ self.view_pose
+            self.view_pose = np.linalg.inv(self.TRANSFORM_2) @ self.view_pose
 
     def selectViewPoint(self):
         print("\n -> Select a view point")
@@ -273,29 +272,29 @@ class ConnectionsManager:
             print("Attention: select only two points")
             return
 
-        sel08: Selection = Selection()
-        sel14: Selection = Selection()
+        sel1: Selection = Selection()
+        sel2: Selection = Selection()
         for idx in idxs:
 
-            if idx < len(self.cloud_crop_08.points):
-                position = self.cloud_crop_08.points[idx]
-                sel08 = self.selection08.getFromPosition(position)
+            if idx < len(self.cloud_crop_1.points):
+                position = self.cloud_crop_1.points[idx]
+                sel1 = self.selection1.getFromPosition(position)
             else:
-                idx -= len(self.cloud_crop_08.points)
-                position = self.cloud_crop_14.points[idx]
+                idx -= len(self.cloud_crop_1.points)
+                position = self.cloud_crop_2.points[idx]
                 pose = np.eye(4)
                 pose[:-1, -1] = position
-                pose = np.linalg.inv(self.TRANSFORM_CLOSE_14) @ pose
+                pose = np.linalg.inv(self.TRANSFORM_CLOSE_2) @ pose
                 position = pose[:-1, -1].flatten()
-                sel14 = self.selection14.getFromPosition(position)
+                sel2 = self.selection2.getFromPosition(position)
 
-        if sel08.isEmtpy() or sel14.isEmtpy():
+        if sel1.isEmtpy() or sel2.isEmtpy():
             print("Connection error")
-            print(sel08.center)
-            print(sel14.center)
+            print(sel1.center)
+            print(sel2.center)
             return
 
-        self.connections.add(sel08.id, sel14.id)
+        self.connections.add(sel1.id, sel2.id)
         self.updateCloudCrop()
         self.ask_selection = False
 
@@ -309,21 +308,21 @@ class ConnectionsManager:
             print("Attention: select only one points")
             return
 
-        sel08: Selection = Selection()
+        sel1: Selection = Selection()
         for idx in idxs:
-            if idx < len(self.cloud_crop_08.points):
-                position = self.cloud_crop_08.points[idx]
-                sel08 = self.selection08.getFromPosition(position)
+            if idx < len(self.cloud_crop_1.points):
+                position = self.cloud_crop_1.points[idx]
+                sel1 = self.selection1.getFromPosition(position)
             else:
                 print("Error: removed fruit can be only in session 1")
 
-        if sel08.isEmtpy():
+        if sel1.isEmtpy():
             print("Error: fruit selection error")
-            print(sel08.center)
+            print(sel1.center)
             print()
             return
 
-        self.connections.add(sel08.id)
+        self.connections.add(sel1.id)
         self.updateCloudCrop()
         self.ask_selection = False
 

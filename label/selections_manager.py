@@ -1,4 +1,6 @@
+from contextlib import redirect_stdout
 import os
+import io
 import math
 import random
 import numpy as np
@@ -11,7 +13,7 @@ from label.utils.area_gt import AreaGT
 from label.selections import Selections, Selection
 from label.utils.commons import pick_points, crop_cloud, load_cloud
 from label.utils.parameters import Parameters
-from label.utils.tools import print_title
+from label.utils.tools import get_screen_size, print_title
 from label.utils.user import user_input, user_question
 
 
@@ -26,13 +28,15 @@ class SelectionsManager:
         T_raw,
         path_save,
         name,
-        params: Parameters,
+        params: dict,
         load_confirmation=True,
     ) -> None:
         self.params = params
         self.load_confirmation = load_confirmation
         self.T = np.array(T_raw)
-        self.initMessage(name)
+        self.clear = lambda: os.system("clear")
+        self.name = name
+        self.initMessage(self.name)
 
         # Loading saved progress
         self.path_selections = path_save
@@ -57,6 +61,7 @@ class SelectionsManager:
         self.ask_selection = True
 
     def initMessage(self, name):
+        self.clear()
         print_title("Fruit selection: {}".format(name), "-")
 
     def saveSelections(self):
@@ -89,7 +94,8 @@ class SelectionsManager:
             self.selections = selections
 
     def userSelection(self):
-        # Do not display selection if not asked by the user
+        self.initMessage(self.name)
+
         if not self.ask_selection:
             return True
 
@@ -104,7 +110,8 @@ class SelectionsManager:
         action = user_input("")
 
         if action == None:
-            pass
+            if (self.view_pose == np.eye(4)).all():
+                self.selectViewPoint()
         elif action == 1:
             self.removeSelection()
         elif action == 2:
@@ -151,7 +158,7 @@ class SelectionsManager:
         self.updateCloudDS()
 
         while True:
-            idxs = pick_points(self.cloud_ds_color)
+            idxs = self.pick_view(self.cloud_ds_color)
 
             if len(idxs) != 1:
                 print("Attention: select one point")
@@ -167,7 +174,7 @@ class SelectionsManager:
 
     def selectFruit(self):
         # Pick points
-        idxs = pick_points(self.cloud_crop)
+        idxs = self.pick_fruits(self.cloud_crop)
         if len(idxs) == 0:
             self.ask_selection = True
             return
@@ -187,6 +194,51 @@ class SelectionsManager:
         sel = self.selections.get()[-1]
         color_cloud(self.cloud_crop, self.cloud_crop_tree, [sel])
         self.ask_selection = False
+
+    def pick_view(self, cloud):
+        vis = o3d.visualization.VisualizerWithEditing()
+        w, h = get_screen_size()
+        vis.create_window(
+            window_name="View point selection",
+            width=w,
+            height=h,
+            left=0,
+            top=0,
+            visible=True,
+        )
+        vis.add_geometry(cloud)
+
+        f = io.StringIO()
+        with redirect_stdout(f):
+            # user picks points
+            vis.run()
+
+        vis.destroy_window()
+        return vis.get_picked_points()
+
+    def pick_fruits(self, cloud):
+        vis = o3d.visualization.VisualizerWithEditing()
+        w, h = get_screen_size()
+        vis.create_window(
+            window_name="View point selection",
+            width=w,
+            height=h,
+            left=0,
+            top=0,
+            visible=True,
+        )
+        vis.add_geometry(cloud)
+        view = vis.get_view_control()
+
+        f = io.StringIO()
+        with redirect_stdout(f):
+            # user picks points
+            vis.run()
+
+        vis.destroy_window()
+        self.fov = view.get_field_of_view()
+        print(self.fov)
+        return vis.get_picked_points()
 
     def removeSelection(self):
         print(

@@ -1,3 +1,6 @@
+import os
+import re
+import subprocess
 import cv2
 import random
 import webcolors
@@ -50,12 +53,12 @@ def display_two_images(image1, image2, block=True):
 
     fig.add_subplot(1, 2, 1)
     plt.imshow(image1)
-    plt.title("08")
+    plt.title("1")
     plt.axis("off")
 
     fig.add_subplot(1, 2, 2)
     plt.imshow(image2)
-    plt.title("14")
+    plt.title("2")
     plt.axis("off")
 
     plt.show(block=block)
@@ -308,3 +311,10 @@ def refine_registration(
         ),
     )
     return result.transformation
+
+
+def get_screen_size():
+    xrandr_txt = subprocess.check_output("xrandr", shell=True).decode()
+    screen_txt = re.search("\d\d\d\dx\d\d\d\d", xrandr_txt).group()
+    w, h = screen_txt.split("x")
+    return int(w), int(h)

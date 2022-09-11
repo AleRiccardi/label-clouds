@@ -95,6 +95,7 @@ def load_cloud(path_cloud, T=np.eye(4)):
     print(' - loading "{}"'.format(name))
     cloud = o3d.io.read_point_cloud(path_cloud)
     cloud.transform(T)
+    print(" - loading done")
 
     return cloud
 
