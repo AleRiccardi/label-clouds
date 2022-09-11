@@ -21,8 +21,9 @@ def main(path_config):
             # Exit
             return
 
-        connections.selectConnection()
-        connections.saveConnections()
+        if connections.isViewPointSet():
+            connections.selectConnection()
+            connections.saveConnections()
 
 
 if __name__ == "__main__":

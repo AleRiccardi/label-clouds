@@ -1,4 +1,5 @@
-import os
+from contextlib import redirect_stdout
+import io
 import re
 import subprocess
 import cv2
@@ -332,3 +333,35 @@ def get_visualizer(name) -> o3d.visualization.VisualizerWithEditing:
         visible=True,
     )
     return vis
+
+
+def pick_points(cloud, name):
+    vis = get_visualizer(name)
+    vis.add_geometry(cloud)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        # user picks points
+        vis.run()
+
+    vis.destroy_window()
+    return vis.get_picked_points()
+
+
+def pick_w_pinhole(cloud, pinhole):
+    vis = get_visualizer("View point selection")
+    vis.add_geometry(cloud)
+
+    view = vis.get_view_control()
+    if pinhole:
+        view.convert_from_pinhole_camera_parameters(pinhole)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        # user picks points
+        vis.run()
+    vis.destroy_window()
+
+    pinhole = view.convert_to_pinhole_camera_parameters()
+
+    return vis.get_picked_points(), pinhole

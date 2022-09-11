@@ -8,8 +8,8 @@ from sklearn.cluster import AgglomerativeClustering
 
 from label.types.fruit import Fruit
 from label.types.pose import Pose
-from label.utils.commons import pick_points, crop_cloud
-from label.utils.tools import set_axes_equal, print_title
+from label.utils.commons import crop_cloud
+from label.utils.tools import pick_points
 
 
 class AreaGT:
@@ -35,7 +35,7 @@ class AreaGT:
         #  self.print()
 
     def fromPointsPick(self, cloud):
-        idxs_points = pick_points(cloud)
+        idxs_points = pick_points(cloud, "Pick points")
         points = []
         points.append(cloud.points[idxs_points[0]])
         points.append(cloud.points[idxs_points[1]])

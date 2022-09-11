@@ -11,9 +11,13 @@ from typing import Dict, List
 
 from label.utils.area_gt import AreaGT
 from label.selections import Selections, Selection
-from label.utils.commons import pick_points, crop_cloud, load_cloud
-from label.utils.parameters import Parameters
-from label.utils.tools import get_screen_size, get_visualizer, print_title
+from label.utils.commons import crop_cloud, load_cloud
+from label.utils.tools import (
+    pick_w_pinhole,
+    pick_points,
+    get_visualizer,
+    print_title,
+)
 from label.utils.user import user_input, user_question
 
 
@@ -180,7 +184,7 @@ class SelectionsManager:
 
     def selectFruit(self):
         # Pick points
-        idxs = self.pick_fruits(self.cloud_crop)
+        idxs, self.pinhole = pick_w_pinhole(self.cloud_crop, self.pinhole)
         if len(idxs) == 0:
             self.ask_selection = True
             return
@@ -210,24 +214,6 @@ class SelectionsManager:
             # user picks points
             vis.run()
         vis.destroy_window()
-
-        return vis.get_picked_points()
-
-    def pick_fruits(self, cloud):
-        vis = get_visualizer("View point selection")
-        vis.add_geometry(cloud)
-
-        view = vis.get_view_control()
-        if self.pinhole:
-            view.convert_from_pinhole_camera_parameters(self.pinhole)
-
-        f = io.StringIO()
-        with redirect_stdout(f):
-            # user picks points
-            vis.run()
-        vis.destroy_window()
-
-        self.pinhole = view.convert_to_pinhole_camera_parameters()
 
         return vis.get_picked_points()
 

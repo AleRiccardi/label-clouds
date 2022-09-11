@@ -6,20 +6,6 @@ import open3d as o3d
 from contextlib import redirect_stdout
 
 
-def pick_points(cloud):
-    vis = o3d.visualization.VisualizerWithEditing()
-    vis.create_window()
-    vis.add_geometry(cloud)
-
-    f = io.StringIO()
-    with redirect_stdout(f):
-        # user picks points
-        vis.run()
-
-    vis.destroy_window()
-    return vis.get_picked_points()
-
-
 def set_view_pose(vis: o3d.visualization.VisualizerWithEditing, view_pose):
     view_control = vis.get_view_control()
     camera_parameters = view_control.convert_to_pinhole_camera_parameters()

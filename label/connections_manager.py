@@ -11,8 +11,8 @@ from label.types.pose import Pose
 from label.connections import Connections
 from label.selections_manager import SelectionsManager
 from label.selections import Selection
-from label.utils.commons import add_clouds, pick_points
-from label.utils.tools import print_title
+from label.utils.commons import add_clouds
+from label.utils.tools import pick_w_pinhole, print_title, pick_points
 from label.utils.user import user_input
 
 
@@ -28,6 +28,7 @@ class ConnectionsManager:
         self.params = params
         self.view_pose = np.eye(4)
         self.clear = lambda: os.system("clear")
+        self.pinhole = None
         self.initMessage()
 
         self.path_connections = params.path_connections
@@ -93,7 +94,6 @@ class ConnectionsManager:
         self.connections = connections
 
     def userSelection(self):
-        # Do not display selection if not asked by the user
         if not self.ask_selection:
             return True
 
@@ -110,9 +110,11 @@ class ConnectionsManager:
         )
         action = user_input("")
 
-        if action == None:
-            if (self.view_pose == np.eye(4)).all():
-                self.selectViewPoint()
+        if not self.isViewPointSet():
+            self.selectViewPoint()
+
+        if not self.isViewPointSet():
+            pass
         elif action == 1:
             self.selectHarvestedFruit()
         elif action == 2:
@@ -121,7 +123,6 @@ class ConnectionsManager:
             self.selectViewPoint()
         elif action == 4:
             self.fruitSelection()
-            self.selectViewPoint()
         elif action == 5:
             return False
 
@@ -147,7 +148,7 @@ class ConnectionsManager:
 
     def removePickConnection(self):
         # Pick points
-        idxs = pick_points(self.cloud_crop)
+        idxs, self.pinhole = pick_w_pinhole(self.cloud_crop, self.pinhole)
         if len(idxs) == 0:
             self.ask_selection = True
             return
@@ -185,8 +186,14 @@ class ConnectionsManager:
 
         if action == 1:
             self.selection1.userSuperSelection()
+            self.selection2.updateViewPoint(self.selection1.view_pose)
+            self.pinhole = None
+            self.ask_selection = True
         elif action == 2:
             self.selection2.userSuperSelection()
+            self.selection1.updateViewPoint(self.selection2.view_pose)
+            self.pinhole = None
+            self.ask_selection = True
         elif action == 3:
             return
 
@@ -234,14 +241,13 @@ class ConnectionsManager:
             self.view_pose = np.linalg.inv(self.TRANSFORM_2) @ self.view_pose
 
     def selectViewPoint(self):
-        print("\n -> Select a view point")
         self.updateCloudDS()
 
         while True:
-            idxs = pick_points(self.cloud_ds)
+            idxs = pick_points(self.cloud_ds, "View point selection")
             if len(idxs) == 0:
-                print("Attention: select one point")
-                continue
+                self.ask_selection = True
+                return
 
             if len(idxs) == 1:
                 break
@@ -262,9 +268,14 @@ class ConnectionsManager:
         self.ask_selection = False
         #  self.sendSocketPose()
 
+    def isViewPointSet(self):
+        if (self.view_pose == np.eye(4)).all():
+            return False
+        return True
+
     def selectConnection(self):
         # Pick points
-        idxs = pick_points(self.cloud_crop)
+        idxs, self.pinhole = pick_w_pinhole(self.cloud_crop, self.pinhole)
         if len(idxs) == 0:
             self.ask_selection = True
             return
@@ -300,7 +311,7 @@ class ConnectionsManager:
 
     def selectHarvestedFruit(self):
         # Pick points
-        idxs = pick_points(self.cloud_crop)
+        idxs, self.pinhole = pick_w_pinhole(self.cloud_crop, self.pinhole)
         if len(idxs) == 0:
             self.ask_selection = True
             return
