@@ -13,7 +13,7 @@ from label.utils.area_gt import AreaGT
 from label.selections import Selections, Selection
 from label.utils.commons import pick_points, crop_cloud, load_cloud
 from label.utils.parameters import Parameters
-from label.utils.tools import get_screen_size, print_title
+from label.utils.tools import get_screen_size, get_visualizer, print_title
 from label.utils.user import user_input, user_question
 
 
@@ -36,6 +36,7 @@ class SelectionsManager:
         self.T = np.array(T_raw)
         self.clear = lambda: os.system("clear")
         self.name = name
+        self.pinhole = None
         self.initMessage(self.name)
 
         # Loading saved progress
@@ -158,7 +159,7 @@ class SelectionsManager:
         self.updateCloudDS()
 
         while True:
-            idxs = self.pick_view(self.cloud_ds_color)
+            idxs = self.pick_view_point(self.cloud_ds_color)
 
             if len(idxs) != 1:
                 print("Attention: select one point")
@@ -170,7 +171,12 @@ class SelectionsManager:
 
             self.updateCloudCrop()
             self.ask_selection = False
+            self.pinhole = None
             break
+
+    def updateViewPoint(self, view_pose: np.ndarray):
+        self.view_pose = view_pose
+        self.pinhole = None
 
     def selectFruit(self):
         # Pick points
@@ -195,49 +201,34 @@ class SelectionsManager:
         color_cloud(self.cloud_crop, self.cloud_crop_tree, [sel])
         self.ask_selection = False
 
-    def pick_view(self, cloud):
-        vis = o3d.visualization.VisualizerWithEditing()
-        w, h = get_screen_size()
-        vis.create_window(
-            window_name="View point selection",
-            width=w,
-            height=h,
-            left=0,
-            top=0,
-            visible=True,
-        )
+    def pick_view_point(self, cloud):
+        vis = get_visualizer("View point selection")
         vis.add_geometry(cloud)
 
         f = io.StringIO()
         with redirect_stdout(f):
             # user picks points
             vis.run()
-
         vis.destroy_window()
+
         return vis.get_picked_points()
 
     def pick_fruits(self, cloud):
-        vis = o3d.visualization.VisualizerWithEditing()
-        w, h = get_screen_size()
-        vis.create_window(
-            window_name="View point selection",
-            width=w,
-            height=h,
-            left=0,
-            top=0,
-            visible=True,
-        )
+        vis = get_visualizer("View point selection")
         vis.add_geometry(cloud)
+
         view = vis.get_view_control()
+        if self.pinhole:
+            view.convert_from_pinhole_camera_parameters(self.pinhole)
 
         f = io.StringIO()
         with redirect_stdout(f):
             # user picks points
             vis.run()
-
         vis.destroy_window()
-        self.fov = view.get_field_of_view()
-        print(self.fov)
+
+        self.pinhole = view.convert_to_pinhole_camera_parameters()
+
         return vis.get_picked_points()
 
     def removeSelection(self):

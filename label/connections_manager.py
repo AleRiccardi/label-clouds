@@ -205,8 +205,8 @@ class ConnectionsManager:
         self.cloud_ds = add_clouds(self.cloud_ds_1, self.cloud_ds_2)
 
     def updateCloudCrop(self):
-        self.selection1.view_pose = self.view_pose
-        self.selection2.view_pose = self.view_pose
+        self.selection1.updateViewPoint(self.view_pose)
+        self.selection2.updateViewPoint(self.view_pose)
 
         ids_color_1 = self.connections.getIdsColor(Connections.MAP_FIRST)
         ids_color_2 = self.connections.getIdsColor(Connections.MAP_SECOND)

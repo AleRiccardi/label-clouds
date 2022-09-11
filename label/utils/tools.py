@@ -318,3 +318,17 @@ def get_screen_size():
     screen_txt = re.search("\d\d\d\dx\d\d\d\d", xrandr_txt).group()
     w, h = screen_txt.split("x")
     return int(w), int(h)
+
+
+def get_visualizer(name) -> o3d.visualization.VisualizerWithEditing:
+    vis = o3d.visualization.VisualizerWithEditing()
+    w, h = get_screen_size()
+    vis.create_window(
+        window_name=name,
+        width=w,
+        height=h,
+        left=0,
+        top=0,
+        visible=True,
+    )
+    return vis
