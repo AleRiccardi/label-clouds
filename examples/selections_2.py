@@ -26,8 +26,9 @@ def main(path_config):
             # Exit
             return
 
-        selection.selectFruit()
-        selection.saveSelections()
+        if selection.isViewPointSet():
+            selection.selectFruit()
+            selection.saveSelections()
 
 
 if __name__ == "__main__":

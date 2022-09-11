@@ -113,9 +113,7 @@ class ConnectionsManager:
         if not self.isViewPointSet():
             self.selectViewPoint()
 
-        if not self.isViewPointSet():
-            pass
-        elif action == 1:
+        if action == 1:
             self.selectHarvestedFruit()
         elif action == 2:
             self.removeConnection()

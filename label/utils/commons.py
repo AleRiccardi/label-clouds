@@ -75,10 +75,6 @@ def get_points_cuboid(size_x: float = 3, size_y: float = 2, size_height: float =
             ],
         ]
     ).astype("float64")
-    print(poligon)
-    print(size_x)
-    input()
-
     return poligon
 
 

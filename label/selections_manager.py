@@ -117,9 +117,7 @@ class SelectionsManager:
         if not self.isViewPointSet():
             self.selectViewPoint()
 
-        if not self.isViewPointSet():
-            pass
-        elif action == 1:
+        if action == 1:
             self.removeSelection()
         elif action == 2:
             self.selectViewPoint()
