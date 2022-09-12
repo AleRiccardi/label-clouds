@@ -38,6 +38,7 @@ class SelectionsManager:
         self.clear = lambda: os.system("clear")
         self.name = name
         self.pinhole = None
+        self.display_real_color = True
         self.initMessage(self.name)
 
         # Loading saved progress
@@ -61,7 +62,6 @@ class SelectionsManager:
         # Initialize base parameters
         self.view_pose = np.eye(4)
         self.ask_selection = True
-        self.inferColors()
 
     def initMessage(self, name):
         self.clear()
@@ -125,22 +125,39 @@ class SelectionsManager:
             " -> Continue",
             " 1) Remove selection",
             " 2) Change view point",
-            " 3) Exit",
+            " 3) Change display color ({})".format(
+                "real" if self.display_real_color else "random"
+            ),
+            " 4) Exit",
             sep=os.linesep,
         )
         action = user_input("")
 
-        if not self.isViewPointSet() and action != 3:
-            self.selectViewPoint()
-
-        if action == 1:
+        if action == None:
+            if not self.isViewPointSet():
+                self.selectViewPoint()
+        elif action == 1:
+            if not self.isViewPointSet():
+                self.selectViewPoint()
             self.removeSelection()
         elif action == 2:
+            if not self.isViewPointSet():
+                self.selectViewPoint()
             self.selectViewPoint()
         elif action == 3:
+            self.changeDisplayColor()
+            self.updateCloudDS()
+            self.updateCloudCrop()
+        elif action == 4:
             return False
 
         return True
+
+    def changeDisplayColor(self):
+        if self.display_real_color:
+            self.display_real_color = False
+        else:
+            self.display_real_color = True
 
     def isViewPointSet(self):
         if (self.view_pose == np.eye(4)).all():
@@ -163,10 +180,17 @@ class SelectionsManager:
     def updateCloudDS(self, ids_color: Dict[int, List[float]] = {}):
         self.cloud_ds_color = deepcopy(self.cloud_ds)
         color_cloud(
-            self.cloud_ds_color, self.cloud_ds_tree, self.selections.get(), ids_color
+            self.cloud_ds_color,
+            self.cloud_ds_tree,
+            self.selections.get(),
+            ids_color,
+            real_color=self.display_real_color,
         )
 
     def updateCloudCrop(self, ids_connections_color: Dict[int, List[float]] = {}):
+        if not self.isViewPointSet():
+            return
+
         cloud_copy = deepcopy(self.cloud)
         cloud_copy.transform(np.linalg.inv(self.view_pose))
 
@@ -181,6 +205,7 @@ class SelectionsManager:
             self.cloud_crop_tree,
             self.selections.get(),
             ids_connections_color,
+            self.display_real_color,
         )
 
     def selectViewPoint(self):
@@ -223,7 +248,12 @@ class SelectionsManager:
         self.addFruit(idxs)
 
         sel = self.selections.get()[-1]
-        color_cloud(self.cloud_crop, self.cloud_crop_tree, [sel])
+        color_cloud(
+            self.cloud_crop,
+            self.cloud_crop_tree,
+            [sel],
+            real_color=self.display_real_color,
+        )
         self.ask_selection = False
 
     def addFruit(self, idxs):
@@ -320,16 +350,18 @@ def color_cloud(
     cloud_tree: o3d.geometry.KDTreeFlann,
     selections: List[Selection],
     ids_conns_color: Dict[int, List[float]] = {},
+    real_color=False,
 ):
 
     for sel in selections:
         _, idxs, _ = cloud_tree.search_radius_vector_3d(sel.center, sel.radius)
 
+        color_fruit = sel.color_mean if real_color else sel.color_display
         color_unique = random.choice(COLORS)
 
         fruit_colors = np.asarray(cloud.colors)
         for idx in idxs:
-            color = color_unique if ids_conns_color else sel.color_mean
+            color = color_unique if ids_conns_color else color_fruit
             color = add_noise(color)
 
             fruit_colors[idx] = color
@@ -351,7 +383,7 @@ def get_fruit_color_std(
     radius: float,
 ):
     colors = []
-    for radius in np.arange(radius * 0.9, radius * 1.1, 0.05):
+    for radius in np.arange(radius * 0.8, radius * 1, 0.05):
         _, idxs, _ = cloud_tree.search_radius_vector_3d(center, radius)
         for idx in idxs:
             colors.append(cloud.colors[idx])
@@ -359,8 +391,6 @@ def get_fruit_color_std(
     try:
         color = list(colors.mean(axis=0))
         std = list(colors.std(axis=0))
-    except TypeError as exc:
-        print(colors)
-        print(exc)
+    except TypeError:
         return [1, 0, 0], [0, 0, 0]
     return color, std
