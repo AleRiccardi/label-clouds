@@ -110,7 +110,7 @@ class ConnectionsManager:
         )
         action = user_input("")
 
-        if not self.isViewPointSet():
+        if not self.isViewPointSet() and action != 5:
             self.selectViewPoint()
 
         if action == 1:

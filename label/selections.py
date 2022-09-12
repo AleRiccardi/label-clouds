@@ -8,11 +8,22 @@ from label.types.pose import Pose
 
 
 class Selection:
-    def __init__(self, id_=-1, center=np.array([0, 0, 0]), radius=0) -> None:
+    RADIUS_FACTOR = 1.1
+
+    def __init__(
+        self,
+        id_=-1,
+        center=np.array([0, 0, 0]),
+        radius: float = 0,
+        color_mean: List[float] = [1, 0, 0],
+        color_std: List[float] = [0, 0, 0],
+    ) -> None:
         self.id = id_
         self.center: np.ndarray = center
-        self.radius = radius
-        self.color = [random.uniform(0, 1) for _ in range(3)]
+        self.radius = radius * self.RADIUS_FACTOR
+        self.color_mean = color_mean
+        self.color_std = color_std
+        self.color_display = [random.uniform(0, 1) for _ in range(3)]
 
     def isEmtpy(self):
         return (self.center == np.array([0, 0, 0])).all()
@@ -24,7 +35,9 @@ class Selection:
         center_pose = center_pose.compose(T)
         self.center = center_pose.getPosition()
         self.radius = data["radius"]
-        self.color = data["color"]
+        self.color_mean = data["color_mean"]
+        self.color_std = data["color_std"]
+        self.color_display = data["color_display"]
         return self
 
     def toDict(self, T=np.eye(4)) -> Dict[str, object]:
@@ -35,7 +48,9 @@ class Selection:
             "id": self.id,
             "center": center_list,
             "radius": self.radius,
-            "color": self.color,
+            "color_mean": self.color_mean,
+            "color_std": self.color_std,
+            "color_display": self.color_display,
         }
         return data
 
@@ -46,8 +61,8 @@ class Selections:
         self.id_incr: int = 0
         self.selections: Dict[int, Selection] = {}
 
-    def add(self, center, radius):
-        sel = Selection(self.id_incr, center, radius)
+    def add(self, center, radius, color_mean, color_std):
+        sel = Selection(self.id_incr, center, radius, color_mean)
         self.selections[self.id_incr] = sel
         self.id_incr += 1
 
