@@ -314,7 +314,10 @@ def refine_registration(
     return result.transformation
 
 
-def get_screen_size():
+def get_screen_size(default=True):
+    if default:
+        return 1920, 1080
+
     xrandr_txt = subprocess.check_output("xrandr", shell=True).decode()
     screen_txt = re.search("\d\d\d\dx\d\d\d\d", xrandr_txt).group()
     w, h = screen_txt.split("x")
