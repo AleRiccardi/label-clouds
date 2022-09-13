@@ -62,6 +62,7 @@ class SelectionsManager:
         # Initialize base parameters
         self.view_pose = np.eye(4)
         self.ask_selection = True
+        self.inferColors()
 
     def initMessage(self, name):
         self.clear()
@@ -77,7 +78,7 @@ class SelectionsManager:
         print(" - infering colors")
 
         cloud_tree = o3d.geometry.KDTreeFlann(self.cloud)
-        selections_list = self.selections.get()
+        selections_list = self.selections.getList()
         for sel in selections_list:
             mean, std = get_fruit_color_std(
                 self.cloud, cloud_tree, sel.center, sel.radius
@@ -141,8 +142,6 @@ class SelectionsManager:
                 self.selectViewPoint()
             self.removeSelection()
         elif action == 2:
-            if not self.isViewPointSet():
-                self.selectViewPoint()
             self.selectViewPoint()
         elif action == 3:
             self.changeDisplayColor()
@@ -182,7 +181,7 @@ class SelectionsManager:
         color_cloud(
             self.cloud_ds_color,
             self.cloud_ds_tree,
-            self.selections.get(),
+            self.selections.getList(),
             ids_color,
             real_color=self.display_real_color,
         )
@@ -203,7 +202,7 @@ class SelectionsManager:
         color_cloud(
             self.cloud_crop,
             self.cloud_crop_tree,
-            self.selections.get(),
+            self.selections.getList(),
             ids_connections_color,
             self.display_real_color,
         )
@@ -247,7 +246,7 @@ class SelectionsManager:
 
         self.addFruit(idxs)
 
-        sel = self.selections.get()[-1]
+        sel = self.selections.getList()[-1]
         color_cloud(
             self.cloud_crop,
             self.cloud_crop_tree,
@@ -273,14 +272,14 @@ class SelectionsManager:
 
     def removeSelection(self):
         print(
-            "Remove selection:", " 1) Last", " 2) Pick", " 3) Go back", sep=os.linesep
+            "Remove selection:", " 1) Pick", " 2) Last", " 3) Go back", sep=os.linesep
         )
         action = user_input("")
 
         if action == 1:
-            self.removeLastSelection()
-        elif action == 2:
             self.removePickSelection()
+        elif action == 2:
+            self.removeLastSelection()
         else:
             return
 
@@ -295,7 +294,7 @@ class SelectionsManager:
 
     def removePickSelection(self):
         # Pick points
-        idxs = pick_points(self.cloud_crop, "Remove selection")
+        idxs, self.pinhole = pick_w_pinhole(self.cloud_crop, self.pinhole)
         if len(idxs) == 0:
             self.ask_selection = True
             return
@@ -361,8 +360,14 @@ def color_cloud(
 
         fruit_colors = np.asarray(cloud.colors)
         for idx in idxs:
-            color = color_unique if ids_conns_color else color_fruit
-            color = add_noise(color)
+            if sel.id in ids_conns_color:
+                color = ids_conns_color[sel.id]
+                color = add_noise(color)
+            elif ids_conns_color:
+                color = color_unique
+            else:
+                color = color_fruit
+                color = add_noise(color)
 
             fruit_colors[idx] = color
 

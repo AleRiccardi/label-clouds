@@ -314,7 +314,7 @@ def refine_registration(
     return result.transformation
 
 
-def get_screen_size(default=True):
+def get_screen_size(default=False):
     if default:
         return 1920, 1080
 

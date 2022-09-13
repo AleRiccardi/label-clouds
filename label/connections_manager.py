@@ -110,16 +110,22 @@ class ConnectionsManager:
         )
         action = user_input("")
 
-        if not self.isViewPointSet() and action != 5:
-            self.selectViewPoint()
-
+        if action == None:
+            if not self.isViewPointSet():
+                self.selectViewPoint()
         if action == 1:
+            if not self.isViewPointSet():
+                self.selectViewPoint()
             self.selectHarvestedFruit()
         elif action == 2:
+            if not self.isViewPointSet():
+                self.selectViewPoint()
             self.removeConnection()
         elif action == 3:
             self.selectViewPoint()
         elif action == 4:
+            if not self.isViewPointSet():
+                self.selectViewPoint()
             self.fruitSelection()
         elif action == 5:
             return False
@@ -255,16 +261,7 @@ class ConnectionsManager:
         self.getCloudViewPoint(idxs[0])
         self.updateCloudCrop()
         self.ask_selection = False
-        #  self.sendSocketPose()
-
-    def selectViewPointRandom(self):
-        print("Selecting a random view point")
-        self.updateCloudDS()
-        idxs = [random.randint(0, len(self.cloud_ds.points))]
-        self.getCloudViewPoint(idxs[0])
-        self.updateCloudCrop()
-        self.ask_selection = False
-        #  self.sendSocketPose()
+        self.pinhole = None
 
     def isViewPointSet(self):
         if (self.view_pose == np.eye(4)).all():

@@ -54,6 +54,9 @@ class Selection:
         }
         return data
 
+    def volume(self):
+        return 4 / 3 * np.pi * self.radius**3
+
 
 class Selections:
     def __init__(self, T=np.eye(4)) -> None:
@@ -62,11 +65,16 @@ class Selections:
         self.selections: Dict[int, Selection] = {}
 
     def add(self, center, radius, color_mean, color_std):
-        sel = Selection(self.id_incr, center, radius, color_mean)
+        sel = Selection(self.id_incr, center, radius, color_mean, color_std)
         self.selections[self.id_incr] = sel
         self.id_incr += 1
 
-    def get(self) -> List[Selection]:
+    def get(self, id_):
+        if id_ in self.selections:
+            return self.selections[id_]
+        return None
+
+    def getList(self) -> List[Selection]:
         return list(self.selections.values())
 
     def getClosest(self, position, dist_max=0.1) -> Selection:
