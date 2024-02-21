@@ -1,8 +1,8 @@
 import json
 import random
-import numpy as np
+from typing import Dict, List, Tuple
 
-from typing import Dict, List
+import numpy as np
 
 from label.types.pose import Pose
 
@@ -117,6 +117,12 @@ class Selections:
             data[id_] = sel.toDict(self.T)
         json_str = json.dumps(data)
         return json_str
+
+    def get_center_radius(self) -> Dict[int, Tuple[np.ndarray, float]]:
+        data = {}
+        for id_, sel in self.selections.items():
+            data[id_] = (sel.center, sel.radius)
+        return data
 
     def __len__(self):
         return len(self.selections)

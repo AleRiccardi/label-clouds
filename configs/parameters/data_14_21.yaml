@@ -1,9 +1,9 @@
-path_cloud_1: configs/data/14_21/cloud_1.ply
-path_cloud_2: configs/data/14_21/cloud_2.ply
+path_cloud_1: data/14_21/cloud_1.ply
+path_cloud_2: data/14_21/cloud_2.ply
 
-path_selections_1: configs/data/14_21/selections_1.json
-path_selections_2: configs/data/14_21/selections_2.json
-path_connections: configs/data/14_21/connections.json
+path_selections_1: data/14_21/selections_1
+path_selections_2: data/14_21/selections_2
+path_connections: data/14_21/connections.json
 
 ## All 
 gt: 

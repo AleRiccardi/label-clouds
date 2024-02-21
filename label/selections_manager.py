@@ -1,20 +1,18 @@
-import os
 import math
+import os
 import random
-import numpy as np
-import open3d as o3d
-
 from copy import deepcopy
+from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
+import open3d as o3d
+from open3d import visualization
+
+from label.selections import Selection, Selections
 from label.utils.area_gt import AreaGT
-from label.selections import Selections, Selection
 from label.utils.commons import crop_cloud, load_cloud
-from label.utils.tools import (
-    pick_w_pinhole,
-    pick_points,
-    print_title,
-)
+from label.utils.tools import pick_points, pick_w_pinhole, print_title
 from label.utils.user import user_input, user_question
 
 
@@ -42,7 +40,7 @@ class SelectionsManager:
         self.initMessage(self.name)
 
         # Loading saved progress
-        self.path_selections = path_save
+        self.path_selections = Path(path_save)
         self.selections: Selections = Selections(self.T)
         self.loadSelections()
 
@@ -53,6 +51,7 @@ class SelectionsManager:
         # Initializing clouds
         self.cloud = load_cloud(path_cloud, self.T)
         self.cloud = area_gt.cropCloud(self.cloud)
+        self.cloud_tree = o3d.geometry.KDTreeFlann(self.cloud)
         self.cloud_ds = self.cloud.voxel_down_sample(self.SIZE_DS)
         self.cloud_ds_tree = o3d.geometry.KDTreeFlann(self.cloud_ds)
         self.cloud_ds_color = o3d.geometry.PointCloud()
@@ -69,10 +68,52 @@ class SelectionsManager:
         print_title("Fruit selection: {}".format(name), "-")
 
     def saveSelections(self):
-        file = open(self.path_selections, "w")
+        # Create folder
+        self.path_selections.mkdir(exist_ok=True)
+        path_ply = self.path_selections / "ply"
+        path_ply.mkdir(exist_ok=True)
+        path_position = self.path_selections / "position"
+        path_position.mkdir(exist_ok=True)
+        path_radius = self.path_selections / "radius"
+        path_radius.mkdir(exist_ok=True)
+
+        # Save json
+        path_json = self.path_selections / "data.json"
+        file = open(path_json, "w")
         json_str = self.selections.toJson()
         file.write(json_str)
         file.close()
+
+        center_radius = self.selections.get_center_radius()
+        cloud_points = np.asarray(self.cloud.points)
+        cloud_colors = np.asarray(self.cloud.colors)
+
+        for idx, (center, radius) in center_radius.items():
+            _, idxs, _ = self.cloud_tree.search_radius_vector_3d(center, radius)
+            points = cloud_points[idxs]
+            colors = cloud_colors[idxs]
+            # Create a point cloud
+            point_cloud = o3d.geometry.PointCloud()
+
+            # Set the points and colors
+            point_cloud.points = o3d.utility.Vector3dVector(points)
+            point_cloud.colors = o3d.utility.Vector3dVector(colors)
+
+            # Save ply
+            path_cloud = path_ply / (str(idx) + ".ply")
+            o3d.io.write_point_cloud(path_cloud.as_posix(), point_cloud)
+
+            # Save position
+            path_position_data = path_position / (str(idx) + ".txt")
+            file = open(path_position_data, "w")
+            file.write(str(center.tolist()))
+            file.close()
+
+            # Save radius
+            path_radius_data = path_radius / (str(idx) + ".txt")
+            file = open(path_radius_data, "w")
+            file.write(str(radius))
+            file.close()
 
     def inferColors(self):
         print(" - infering colors")
@@ -93,10 +134,11 @@ class SelectionsManager:
         self.saveSelections()
 
     def loadSelections(self):
-        if not os.path.exists(self.path_selections):
+        path_data = self.path_selections / "data.json"
+        if not os.path.exists(path_data):
             return
 
-        file = open(self.path_selections, "r")
+        file = open(path_data, "r")
         selections = Selections(self.T).fromJson(file.read())
         file.close()
 
@@ -351,7 +393,6 @@ def color_cloud(
     ids_conns_color: Dict[int, List[float]] = {},
     real_color=False,
 ):
-
     for sel in selections:
         _, idxs, _ = cloud_tree.search_radius_vector_3d(sel.center, sel.radius)
 

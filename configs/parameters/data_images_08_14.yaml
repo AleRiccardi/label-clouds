@@ -1,18 +1,18 @@
-path_images_left_1: configs/data/08_14/images_left_1/
-path_images_right_1: configs/data/08_14/images_right_1/
-path_images_left_2: configs/data/08_14/images_left_2/
-path_images_right_2: configs/data/08_14/images_right_2/
+path_images_left_1: data/08_14/images_left_1/
+path_images_right_1: data/08_14/images_right_1/
+path_images_left_2: data/08_14/images_left_2/
+path_images_right_2: data/08_14/images_right_2/
 
-path_poses_1: configs/data/08_14/poses_1.txt
-path_poses_2: configs/data/08_14/poses_2.txt
+path_poses_1: data/08_14/poses_1.txt
+path_poses_2: data/08_14/poses_2.txt
 
-path_selections_1: configs/data/08_14/selections_1.json
-path_selections_2: configs/data/08_14/selections_2.json
+path_selections_1: data/08_14/selections_1.json
+path_selections_2: data/08_14/selections_2.json
 
-path_cloud_1: configs/data/08_14/cloud_1.ply
-path_cloud_2: configs/data/08_14/cloud_2.ply
+path_cloud_1: data/08_14/cloud_1.ply
+path_cloud_2: data/08_14/cloud_2.ply
 
-path_connections: configs/data/08_14/connections.json
+path_connections: data/08_14/connections.json
 
 gt: 
   GT_MIN: [27.5, 0.6]

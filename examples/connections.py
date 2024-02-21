@@ -3,7 +3,6 @@
 
 import click
 
-from open3d import os
 from label.connections_manager import ConnectionsManager
 from label.utils.parameters import Parameters
 

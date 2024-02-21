@@ -65,8 +65,6 @@ class ConnectionsManager:
         self.cloud_crop = o3d.geometry.PointCloud()
 
         self.ask_selection = True
-        #  self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #  self.socket.connect((self.HOST, self.PORT))
 
     def initMessage(self):
         self.clear()
